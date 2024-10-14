@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 600px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 20px; }
+        .button { margin-top: 10px; padding: 5px 10px; }
+        input { width: 100%; padding: 8px; margin: 5px 0; }
+        .result { margin-top: 20px; white-space: pre-wrap; border: 1px solid #ddd; padding: 10px; }
+        h3 { color: #333; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>User Management</h2>
+
+    <!--create user-->
+    <div class="section">
+        <h3>Create User</h3>
+        <input type="text" id="createUsername" placeholder="Username" />
+        <input type="text" id="createFirstName" placeholder="First Name" />
+        <input type="text" id="createLastName" placeholder="Last Name" />
+        <input type="email" id="createEmail" placeholder="Email" />
+        <input type="tel" id="createPhoneNumber" placeholder="Phone Number" />
+        <button class="button" onclick="createUser()">Create User</button>
+    </div>
+
+    <!--list all users we have-->
+    <div class="section">
+        <h3>List All Users</h3>
+        <button class="button" onclick="listAllUsers()">List All Users</button>
+    </div>
+
+    <!--get user by userID-->
+    <div class="section">
+        <h3>Get User by ID</h3>
+        <input type="text" id="getUserId" placeholder="User ID" />
+        <button class="button" onclick="getUser()">Get User</button>
+    </div>
+
+    <!--update user-->
+    <div class="section">
+        <h3>Update User</h3>
+        <input type="text" id="updateUserId" placeholder="User ID" />
+        <input type="text" id="updateUsername" placeholder="Username" />
+        <input type="text" id="updateFirstName" placeholder="First Name" />
+        <input type="text" id="updateLastName" placeholder="Last Name" />
+        <input type="email" id="updateEmail" placeholder="Email" />
+        <input type="tel" id="updatePhoneNumber" placeholder="Phone Number" />
+        <button class="button" onclick="updateUser()">Update User</button>
+    </div>
+
+    <!--delete user-->
+    <div class="section">
+        <h3>Delete User</h3>
+        <input type="text" id="deleteUserId" placeholder="User ID" />
+        <button class="button" onclick="deleteUser()">Delete User</button>
+    </div>
+
+    <!--results-->
+    <div class="section">
+        <h3>Results</h3>
+        <pre id="result" class="result"></pre>
+    </div>
+</div>
+
+<script>
+    //to display result by text, json format
+    function displayResult(response) {
+        document.getElementById('result').textContent = JSON.stringify(response, null, 2);
+    }
+
+    //create new user
+    function createUser() {
+        const user = {
+            username: document.getElementById('createUsername').value,
+            firstName: document.getElementById('createFirstName').value,
+            lastName: document.getElementById('createLastName').value,
+            email: document.getElementById('createEmail').value,
+            phoneNumber: document.getElementById('createPhoneNumber').value
+        };
+        fetch('/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(response => response.json())
+            .then(data => displayResult(data))
+            .catch(error => displayResult(error));
+    }
+
+    //list all the users we have (and not deleted)
+    function listAllUsers() {
+        fetch('/users')
+            .then(response => response.json())
+            .then(data => displayResult(data))
+            .catch(error => displayResult(error));
+    }
+
+    //get user info by userID
+    function getUser() {
+        const userId = document.getElementById('getUserId').value;
+        fetch(`/users/${userId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("User not found");
+                return response.json();
+            })
+            .then(data => displayResult(data))
+            .catch(error => displayResult({ error: error.message }));
+    }
+
+    //update info for existing user
+    function updateUser() {
+        const userId = document.getElementById('updateUserId').value;
+        const user = {
+            username: document.getElementById('updateUsername').value,
+            firstName: document.getElementById('updateFirstName').value,
+            lastName: document.getElementById('updateLastName').value,
+            email: document.getElementById('updateEmail').value,
+            phoneNumber: document.getElementById('updatePhoneNumber').value
+        };
+        fetch(`/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        })
+            .then(response => response.json())
+            .then(data => displayResult(data))
+            .catch(error => displayResult(error));
+    }
+
+    //delete user by id
+    function deleteUser() {
+        const userId = document.getElementById('deleteUserId').value;
+        fetch(`/users/${userId}`, { method: 'DELETE' })
+            .then(() => displayResult({ message: 'User deleted successfully' }))
+            .catch(error => displayResult(error));
+    }
+</script>
+</body>
+</html>
