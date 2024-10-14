@@ -22,7 +22,8 @@ public class User {
     //constructors
     public User() {}
 
-    public User(String username, String firstName, String lastName, String email, String phoneNumber) {
+    public User(Long id, String username, String firstName, String lastName, String email, String phoneNumber) {
+        this.id = id;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -32,6 +33,10 @@ public class User {
 
     //setter & getters for needed info
 
+    //id
+    public Long getId(){
+        return id;
+    }
     //user name
     public String getUsername() {
         return username;

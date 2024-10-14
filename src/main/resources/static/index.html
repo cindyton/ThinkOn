@@ -73,16 +73,45 @@
     function displayResult(response) {
         document.getElementById('result').textContent = JSON.stringify(response, null, 2);
     }
+    //ensure input isn't empty
+    function validateInputs(inputs) {
+        for (const input of inputs) {
+            if (input.value.trim() === "") {
+                alert(`${input.placeholder} cannot be empty.`);
+                return false;
+            }
+        }
+        return true;
+    }
 
     //create new user
     function createUser() {
+        const inputs = [
+            document.getElementById('createUsername'),
+            document.getElementById('createFirstName'),
+            document.getElementById('createLastName'),
+            document.getElementById('createEmail'),
+            document.getElementById('createPhoneNumber')
+        ];
+
+        if (!validateInputs(inputs)) return;
+        const userId = document.getElementById('getUserId').value;//
         const user = {
+            id:userId,
             username: document.getElementById('createUsername').value,
             firstName: document.getElementById('createFirstName').value,
             lastName: document.getElementById('createLastName').value,
             email: document.getElementById('createEmail').value,
             phoneNumber: document.getElementById('createPhoneNumber').value
         };
+        // const user = {
+        //     userid:document.getElementById('getUserId').value,//
+        //     username: inputs[0].value,
+        //     firstName: inputs[1].value,
+        //     lastName: inputs[2].value,
+        //     email: inputs[3].value,
+        //     phoneNumber: inputs[4].value
+        // };
         fetch('/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -93,17 +122,29 @@
             .catch(error => displayResult(error));
     }
 
+
     //list all the users we have (and not deleted)
     function listAllUsers() {
         fetch('/users')
             .then(response => response.json())
-            .then(data => displayResult(data))
-            .catch(error => displayResult(error));
+            .then(data => {
+                document.getElementById('result').textContent = data.map(user =>
+                    `User ID: ${user.id}\nUsername: ${user.username}\nFirst Name: ${user.firstName}\nLast Name: ${user.lastName}\nEmail: ${user.email}\nPhone Number: ${user.phoneNumber}`
+                ).join('\n\n');
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = `Error: ${error.message}`;
+            });
     }
+
 
     //get user info by userID
     function getUser() {
         const userId = document.getElementById('getUserId').value;
+        if (userId === "") {
+            alert("User ID cannot be empty.");
+            return;
+        }
         fetch(`/users/${userId}`)
             .then(response => {
                 if (!response.ok) throw new Error("User not found");
@@ -116,7 +157,21 @@
     //update info for existing user
     function updateUser() {
         const userId = document.getElementById('updateUserId').value;
+        if (userId === "") {
+            alert("User ID cannot be empty.");
+            return;
+        }
+        const inputs = [
+            document.getElementById('updateUsername'),
+            document.getElementById('updateFirstName'),
+            document.getElementById('updateLastName'),
+            document.getElementById('updateEmail'),
+            document.getElementById('updatePhoneNumber')
+        ];
+
+        if (!validateInputs(inputs)) return;
         const user = {
+            id:userId,
             username: document.getElementById('updateUsername').value,
             firstName: document.getElementById('updateFirstName').value,
             lastName: document.getElementById('updateLastName').value,
@@ -136,9 +191,26 @@
     //delete user by id
     function deleteUser() {
         const userId = document.getElementById('deleteUserId').value;
-        fetch(`/users/${userId}`, { method: 'DELETE' })
-            .then(() => displayResult({ message: 'User deleted successfully' }))
-            .catch(error => displayResult(error));
+        if (userId === "") {
+            alert("User ID cannot be empty.");
+            return;
+        }
+        // fetch(`/users/${userId}`, { method: 'DELETE' })
+        //     .then(() => displayResult({ message: 'User deleted successfully' }))
+        //     .catch(error => displayResult(error));
+        fetch(`/users/${userId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("User not found");
+                return fetch(`/users/${userId}`, { method: 'DELETE' });
+            })
+            .then(response => {
+                if (response.ok) {
+                    displayResult({ message: "User deleted successfully" });
+                } else {
+                    throw new Error("Failed to delete user");
+                }
+            })
+            .catch(error => displayResult({ error: error.message }));
     }
 </script>
 </body>
